@@ -152,16 +152,18 @@ def get_column_idx(curs, table_name, field):
     return None
 
 
-## printing updated sql data in a dict way (Column, row). optional to choose table name
-def print_sql_row(curs, table_name="SensorsInfo"):
-    table_rows = curs.execute("SELECT * FROM " + table_name)
+## printing updated sql data in a dict way (Column, row). optional to choose table name and number of last rows to print
+def print_sql_row(curs, table_name="SensorsInfo", num_of_last_rows=None):
+    if num_of_last_rows == None:
+        table_rows = curs.execute("SELECT TOP " + str(num_of_last_rows) + " FROM " + table_name + " ORDER BY ID DESC")
+    else:
+        table_rows = curs.execute("SELECT * FROM " + table_name)
     columns = [column[0] for column in curs.description]
     print(columns)
     for row in table_rows:
         for idx in range(len(columns)):
             print(row[idx],  end=', ')
         print("")
-
 
 def get_last_table_elem(curs, field, table_name):
     query = "SELECT MAX(id) FROM " + table_name
