@@ -5,17 +5,12 @@
 import telemetry
 import time
 import argparse
-import sys
 import os
 from multiprocessing import Process
 
-module_path = os.path.abspath(os.getcwd())
-
-if module_path not in sys.path:
-
-    sys.path.append(module_path)
-
 from sql.sql_config import *
+
+module_path = os.path.abspath(os.getcwd())
 
 
 
@@ -49,6 +44,12 @@ def export_sensors_to_excel():
 if __name__ == '__main__':
 
     conn, cursor = connect_to_db()
+    init_database(cursor, conn)
+
+    init_sql_table(cursor, conn, "SensorsInfo", d_sensors, False)
+
+    print_sql_row(cursor, "SensorsInfo")
+
     vehicleConnected = True; flightMode = False; inDoor = True
 
     # initiate contact with flight computer #
