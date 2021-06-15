@@ -28,47 +28,45 @@ parser.add_argument("--in-door", action='store_true',
 args = parser.parse_args()
 
 HISTORY_WRITE = 10
+
+##  this function runs as a parallel process in sensors module.
+#   Exports the sensors sql table to xlsx format using sql_to_excel function in sql_config (possible to change to csv)
 def export_sensors_to_excel():
-    # conn, cursor = connect_to_db()
-    # t_hist = 0
-    # while True:
-    #     sql_to_excel(conn, "SensorsInfo", "sql/SensorsInfo.xlsx")
-    #     time.sleep(1)
-    #     t_hist = t_hist + 1
-    #     if t_hist == HISTORY_WRITE:
-    #         sql_to_excel(conn, "SensorsInfoHistory", "sql/SensorsInfoHistory.xlsx")
-    #         time.sleep(10)
-    #         t_hist = 0
+    conn, cursor = connect_to_db()
+    t_hist = 0
+    while True:
+        sql_to_excel(conn, "SensorsInfo", "sql/SensorsInfo.xlsx")
+        time.sleep(1)
+        t_hist = t_hist + 1
+        if t_hist == HISTORY_WRITE:
+            sql_to_excel(conn, "SensorsInfoHistory", "sql/SensorsInfoHistory.xlsx")
+            time.sleep(10)
+            t_hist = 0
     pass
+
 
 if __name__ == '__main__':
 
-    conn, cursor = connect_to_db()
-    init_database(cursor, conn)
-
-    init_sql_table(cursor, conn, "SensorsInfo", d_sensors, False)
-
-    print_sql_row(cursor, "SensorsInfo")
+    conn, cursor = connect_to_db() # connection to sql server
+    init_database(cursor, conn) # connection to AutoCleanDB
+    init_sql_table(cursor, conn, "SensorsInfo", d_sensors, False) # create sensors info table if it doesn't exist
+    print_sql_row(cursor, "SensorsInfo") # for sanity prints the table (might limit rows so it will print limited amount of rows)
 
     vehicleConnected = True; flightMode = False; inDoor = True
 
-    # initiate contact with flight computer #
+    # initiate contact with vehicle computer #
     TX_Pixhawk_telem = telemetry.Telemetry(vehicleConnected)  # can't open SITL simulation on TX2 ARM (only on computer)
     TX_Pixhawk_telem.initialize(inDoor)
 
-    # while (not TX_Pixhawk_telem.is_arm()) and flightMode:
-    #     print("In flight mode. Waiting the drone to be armed to continue")
-    #     time.sleep(1)
-
-    p = Process(target=export_sensors_to_excel)
+    p = Process(target=export_sensors_to_excel) # starting backround process for excel exporting. might change the function for other background routine
     p.start()
 
     while True:
         try:
-            sensors_info = TX_Pixhawk_telem.read_information()
-            sensors_info = tuple(vars(sensors_info).values())
-            update_sql(cursor, conn, "SensorsInfo", sensors_info, False, d_sensors)
-            time.sleep(0.1)
+            sensors_info = TX_Pixhawk_telem.read_information() # reads sensors info from dronekit API
+            sensors_info = tuple(vars(sensors_info).values()) # turns class members to tuple for sql row insert
+            update_sql(cursor, conn, "SensorsInfo", sensors_info, False, d_sensors) # inserts to sql sensors table in the fields that parsed from d_sensors
+            time.sleep(0.2) # to prevent heavy load on sql server we insert with delay
         except Exception as e:
             print("something's wrong with transmission. Exception is {}".format(e))
 

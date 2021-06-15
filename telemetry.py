@@ -89,40 +89,10 @@ class Telemetry:
 
     ##
     # @brief One time read information from the Pixhawk flight computer
-    # @param toPrint True/False (optional)
     # @return sensors_info class
-    def read_information(self, toPrint=False):
+    def read_information(self):
         self.vehicle.wait_ready(True)  # waits for specified attributes to be populated from the vehicle (values are initially None).
         takeoff_alt_barom = self.vehicle.location.global_frame.alt
-
-        # if toPrint:
-            # print('Autopilot version: {}'.format(self.vehicle.version))
-            # print('Home location (GPS, global WGS84): {}'.format(
-            #     self.vehicle.home_location))  # location is set when the vehicle gets a first good location fix from the GPS
-            # print('Mean sea level altitude (barometer) is: {:.3f}m'.format(
-            #     takeoff_alt_barom))  # can take several seconds longer to populate (taken from the barometer).
-            # # Relative to mean sea-level (MSL)
-            # print('Current global latitude (GPS, WGS84): {}'.format(
-            #     self.vehicle.location.global_relative_frame.lat))  # relative to the WGS84 coordinate system
-            # print('Current global longitude (GPS, WGS84): {}'.format(
-            #     self.vehicle.location.global_relative_frame.lon))  # relative to the WGS84 coordinate system
-            # print('Current global altitude (GPS, WGS84): {}'.format(
-            #     self.vehicle.location.global_relative_frame.alt))  # relative to home location
-            # print('Current heading: {:.3f} deg ([0 360], north is 0)'.format(
-            #     self.vehicle.heading))  # attitude information  # TODO: is this 'DroneCompass'?
-            # print('Current relative altitude: {:.3f}m (barometer, from home location):'.format(
-            #     self.vehicle.location.global_frame.alt - takeoff_alt_barom))  # relative to takeoff position # TODO PixhawkHeight
-            # print('Current yaw: {:.3f} deg'.format(
-            #     (180 / math.pi) * self.vehicle.attitude.yaw))
-            # print('Current pitch: {:.3f} deg'.format(
-            #     (180 / math.pi) * self.vehicle.attitude.pitch))
-            # print('Current roll: {:.3f} deg'.format(
-            #     (180 / math.pi) * self.vehicle.attitude.roll))
-            # print('{})'.format(
-            #     self.vehicle.gimbal))  # DroneKit-SITL does not automatically add a virtual gimbal, so this attribute will always report None
-            # print('Last Heartbeat: {:.3f}s ago'.format(
-            #     self.vehicle.last_heartbeat))  # when did we receive the last heartbeat
-
         sensors_info = SensorsInfo(check_none(self.vehicle.location.global_relative_frame.lat),
                     check_none(self.vehicle.heading),
                     check_none(self.vehicle.location.global_frame.alt - takeoff_alt_barom),
@@ -170,10 +140,3 @@ class Telemetry:
         print("Telemetry is closed")
 
 
-
-
-# TODO: remove when done presenting it
-##
-# @brief example of an inheritence class to generate UML in doxygen
-class Child(Telemetry):
-    pass
